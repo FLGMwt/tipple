@@ -1,12 +1,11 @@
 import { Card, Comment, Spin, Row } from 'antd';
 import React, { FC, useMemo } from 'react';
-import { useFetch, FetchState } from 'tipple';
+import { useFetch, FetchState, many } from 'tipple';
 
 export const Post: FC<{ post: PostData }> = ({ post }) => {
-  const [comments] = useFetch<CommentData[], DataDomain>(
-    `/comments/?postId=${post.id}`,
-    { domains: ['comments'] }
-  );
+  const [comments] = useFetch<CommentData[]>(`/comments/?postId=${post.id}`, {
+    domains: [many('comments')],
+  });
 
   const commentsContent = useMemo(() => getComments(comments), [comments]);
 

@@ -33,15 +33,43 @@ export const createAddResponse = (
   setDomains: Dispatch<SetStateAction<DomainMap>>,
   setResponses: Dispatch<SetStateAction<ResponseMap>>
 ): TippleContext['addResponse'] => ({ key, domains, data }) => {
-  // Add key to specified domains
-  setDomains(domainsState =>
-    domains.reduce(
-      (p, d) => ({ ...p, [d]: p[d] === undefined ? [key] : [...p[d], key] }),
-      domainsState
-    )
+  // Update domain dependents
+  domains.forEach(entry =>
+    setDomains(domainsState => {
+      const entryDomain =
+        domainsState[entry.domain] === undefined
+          ? { many: [], single: {} }
+          : domainsState[entry.domain];
+
+      // Add key to many collection
+      if (entry.type === 'many') {
+        return {
+          ...domainsState,
+          [entry.domain]: {
+            ...entryDomain,
+            many: [...entryDomain.many, key],
+          },
+        };
+      }
+
+      // Add key to entry collection
+      return {
+        ...domainsState,
+        [entry.domain]: {
+          ...entryDomain,
+          single: {
+            ...entryDomain.single,
+            [entry.id]:
+              entryDomain.single[entry.id] === undefined
+                ? [key]
+                : [...entryDomain.single[entry.id], key],
+          },
+        },
+      };
+    })
   );
 
-  // Update responses
+  // Update cache with new data
   setResponses(responses => ({
     ...responses,
     [key]: { refetch: false, data },
@@ -50,24 +78,29 @@ export const createAddResponse = (
 
 /** Logic for clearing domains. */
 export const createClearDomains = (
-  domains: Record<string, string[]>,
+  domains: DomainMap,
   setResponses: Dispatch<SetStateAction<ResponseMap>>
-): TippleContext['clearDomains'] => targetDomains =>
-  targetDomains.forEach(domain => {
-    if (domains[domain] === undefined) {
-      return;
-    }
+): TippleContext['clearDomains'] => domainEntries =>
+  domainEntries.forEach(entry => {
+    const localDomain = domains[entry.domain];
+    const targets =
+      entry.type === 'many'
+        ? // All keys (many and single) in domain
+          [
+            ...localDomain.many,
+            ...Object.values(localDomain.single).reduce(
+              (prevKeys, keys) => [...prevKeys, ...keys],
+              []
+            ),
+          ]
+        : // Single key in domain
+          localDomain.single[entry.id] || [];
 
-    setResponses(responsesState =>
-      domains[domain].reduce(
-        (p, d) => ({
-          ...p,
-          [d]: {
-            ...p[d],
-            refetch: true,
-          },
-        }),
-        responsesState
+    // Flag dependents for refetch
+    setResponses(responses =>
+      targets.reduce(
+        (p, t) => ({ ...p, [t]: { refetch: true, data: p[t].data } }),
+        responses
       )
     );
   });

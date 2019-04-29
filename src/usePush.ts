@@ -1,6 +1,7 @@
 import { useContext, useCallback, useState } from 'react';
 import { TippleContext } from './context';
 import { executeRequest } from './util';
+import { DomainEntry } from './types';
 
 export type TypedUsePush<D extends string> = <T extends any>(
   url: string,
@@ -14,7 +15,7 @@ export interface PushState<T = any> {
 }
 
 interface UsePushOptions<D extends string> {
-  domains: D[];
+  domains: DomainEntry<D>[];
   onMount?: boolean;
   fetchOptions?: RequestInit;
 }

@@ -1,12 +1,11 @@
 import { Card, Button, Input, Row, Col } from 'antd';
 import React, { useState, useCallback, useRef } from 'react';
-import { usePush } from 'tipple';
+import { usePush, single } from 'tipple';
 
 export const AddPost = () => {
-  const timingOut = useRef(false);
   const [body, setBody] = useState<any>({ author: 'user', title: '' });
   const [response, addPost, clearResponse] = usePush('/posts', {
-    domains: ['posts'],
+    domains: [single('posts', -1)],
     fetchOptions: { method: 'POST', body: JSON.stringify(body) },
   });
 

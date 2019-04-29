@@ -1,3 +1,5 @@
+import { SingleDomainEntry, ManyDomainEntry } from './types';
+
 /** Gets unique key of request. */
 export const getKey = (url: string, fetchArgs: RequestInit) =>
   `${url}+${fetchArgs.body !== undefined ? fetchArgs.body : ''}`;
@@ -13,3 +15,13 @@ export const executeRequest = async (url: string, fetchArgs: RequestInit) => {
 
   return json;
 };
+
+export const single = <D extends string>(
+  domain: D,
+  id: string | number
+): SingleDomainEntry<D> => ({ type: 'single', domain, id });
+
+export const many = <D extends string>(domain: D): ManyDomainEntry<D> => ({
+  type: 'many',
+  domain,
+});

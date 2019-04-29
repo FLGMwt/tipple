@@ -1,9 +1,9 @@
 import { createContext } from 'react';
-import { DomainMap, ResponseMap } from './types';
+import { DomainMap, ResponseMap, DomainEntry } from './types';
 
 export interface AddResponseArgs<D extends string = string> {
   key: string;
-  domains: D[];
+  domains: DomainEntry<D>[];
   data: any;
 }
 
@@ -17,7 +17,7 @@ export interface TippleContext<D extends string = string> {
   domains: DomainMap;
   responses: ResponseMap;
   addResponse: (args: AddResponseArgs<D>) => void;
-  clearDomains: (domain: D[]) => void;
+  clearDomains: (domain: DomainEntry[]) => void;
 }
 
 export const TippleContext = createContext<TippleContext>(null as any);

@@ -1,11 +1,11 @@
 import { Spin, Button } from 'antd';
 import React, { FC } from 'react';
-import { useFetch } from 'tipple';
+import { useFetch, many } from 'tipple';
 import { Post } from './Post';
 
 export const Posts: FC = () => {
-  const [posts, refetch] = useFetch<PostData[], DataDomain>('/posts', {
-    domains: ['posts'],
+  const [posts, refetch] = useFetch<PostData[]>('/posts', {
+    domains: [many('posts')],
   });
 
   if (posts.fetching && posts.data === undefined) {
