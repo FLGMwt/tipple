@@ -5,39 +5,36 @@ export type CachePolicy =
   | 'network-only';
 
 /** Use fetch options shared across all configs. */
-export interface BaseUseFetchOptions<
-  D extends string = string,
-  T extends any = any
-> {
+export interface BaseUseFetchOptions<D extends string = string, T = any> {
   onMount?: boolean;
   fetchOptions?: RequestInit;
   baseUrl?: string;
-  domains: (data: T) => DomainEntry<D>[] | DomainEntry<D>[];
+  domains: DomainEntry<D>[] | ((data: T) => DomainEntry<D>[]);
 }
 
 /** Default useFetch options. */
-export interface GeneralUseFetchOptions<D extends string = string>
-  extends BaseUseFetchOptions<D> {
+export interface GeneralUseFetchOptions<D extends string = string, T = any>
+  extends BaseUseFetchOptions<D, T> {
   cachePolicy?: Exclude<CachePolicy, 'network-only' | 'cache-only'>;
 }
 
 /** useFetch options without domain (for network-only). */
-export interface NetworkOnlyUseFetchOptions
-  extends Omit<BaseUseFetchOptions, 'domains'> {
+export interface NetworkOnlyUseFetchOptions<T = any>
+  extends Omit<BaseUseFetchOptions<string, T>, 'domains'> {
   cachePolicy: 'network-only';
 }
 
 /** useFetch options without onMount option (for cache-only). */
-export interface CacheOnlyUseFetchOptions<D extends string>
-  extends Omit<BaseUseFetchOptions<D>, 'onMount'> {
+export interface CacheOnlyUseFetchOptions<D extends string = string, T = any>
+  extends Omit<BaseUseFetchOptions<D, T>, 'onMount'> {
   cachePolicy: 'cache-only';
 }
 
 /** Config options for useFetch. */
-export type UseFetchOptions<D extends string = string> =
-  | GeneralUseFetchOptions<D>
-  | NetworkOnlyUseFetchOptions
-  | CacheOnlyUseFetchOptions<D>;
+export type UseFetchOptions<D extends string = string, T = any> =
+  | GeneralUseFetchOptions<D, T>
+  | NetworkOnlyUseFetchOptions<T>
+  | CacheOnlyUseFetchOptions<D, T>;
 
 /** Network information returned from useFetch. */
 export interface FetchState<T = any> {
@@ -50,7 +47,7 @@ export interface FetchState<T = any> {
 export type UseFetchResponse<T = any> = [FetchState<T>, () => void];
 
 /** Re-export utility type for enforcing domain. */
-export type TypedUseFetch<D extends string> = <T extends any>(
+export type TypedUseFetch<D extends string> = <T>(
   url: string,
   opts: UseFetchOptions<D>
 ) => UseFetchResponse<T>;

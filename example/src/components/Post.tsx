@@ -1,13 +1,16 @@
-import { Card, Comment, Spin, Row } from 'antd';
-import React, { FC, useMemo } from 'react';
-import { useFetch, FetchState, many } from 'tipple';
+import { Card, Comment, Spin, Row, Input, Button } from 'antd';
+import React, { FC, useMemo, useCallback } from 'react';
+import { useFetch, usePush, FetchState, single, many } from 'tipple';
+import { useState } from 'react';
 
 export const Post: FC<{ post: PostData }> = ({ post }) => {
   const [comments] = useFetch<CommentData[]>(`/comments/?postId=${post.id}`, {
-    domains: [many('comments')],
+    domains: comments => comments.map(c => single('comments', c.id)),
   });
 
-  const commentsContent = useMemo(() => getComments(comments), [comments]);
+  const commentsContent = useMemo(() => getComments(comments, post.id), [
+    comments,
+  ]);
 
   return (
     <Row>
@@ -19,7 +22,29 @@ export const Post: FC<{ post: PostData }> = ({ post }) => {
   );
 };
 
-const getComments = (comments: FetchState<CommentData[]>) => {
+const getComments = (comments: FetchState<CommentData[]>, postId: number) => {
+  const [commentInput, setCommentInput] = useState('');
+  const [response, addComment, clearResponse] = usePush<CommentData>(
+    '/comments',
+    {
+      domains: comment => [many('comments')],
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({ postId, body: commentInput }),
+      },
+    }
+  );
+
+  const handleInput = useCallback(
+    (e: any) => setCommentInput(e.target.value),
+    []
+  );
+
+  if (response.data !== undefined) {
+    clearResponse();
+    setCommentInput('');
+  }
+
   if (comments.fetching && comments.data === undefined) {
     return <Spin />;
   }
@@ -35,6 +60,12 @@ const getComments = (comments: FetchState<CommentData[]>) => {
       {comments.data.map(comment => (
         <Comment key={comment.id} content={comment.body} />
       ))}
+      <Input
+        placeholder={'Add comment'}
+        value={commentInput}
+        onChange={handleInput}
+      />
+      <Button onClick={addComment}>Reply</Button>
     </>
   );
 };

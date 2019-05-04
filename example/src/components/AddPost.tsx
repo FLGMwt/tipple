@@ -4,8 +4,8 @@ import { usePush, single } from 'tipple';
 
 export const AddPost = () => {
   const [body, setBody] = useState<any>({ author: 'user', title: '' });
-  const [response, addPost, clearResponse] = usePush('/posts', {
-    domains: [single('posts', -1)],
+  const [response, addPost, clearResponse] = usePush<PostData>('/posts', {
+    domains: post => [single('posts', post.id)],
     fetchOptions: { method: 'POST', body: JSON.stringify(body) },
   });
 

@@ -14,8 +14,8 @@ export interface PushState<T = any> {
   error?: Error;
 }
 
-interface UsePushOptions<D extends string> {
-  domains: DomainEntry<D>[];
+interface UsePushOptions<D extends string, T = any> {
+  domains: DomainEntry<D>[] | ((data: T) => DomainEntry<D>[]);
   onMount?: boolean;
   baseUrl?: string;
   fetchOptions?: RequestInit;
@@ -25,7 +25,7 @@ type UsePushResponse<T = any> = [PushState<T>, () => Promise<T>, () => void];
 
 export const usePush = <T = any, D extends string = string>(
   url: string,
-  opts: UsePushOptions<D>
+  opts: UsePushOptions<D, T>
 ): UsePushResponse<T> => {
   const { config, clearDomains } = useContext(TippleContext);
   const [state, setState] = useState<PushState<T>>({ fetching: false });
@@ -43,7 +43,11 @@ export const usePush = <T = any, D extends string = string>(
         }
       );
 
-      clearDomains(opts.domains);
+      clearDomains(
+        typeof opts.domains === 'function'
+          ? opts.domains(response)
+          : opts.domains
+      );
       setState({ fetching: false, data: response });
       return response;
     } catch (error) {

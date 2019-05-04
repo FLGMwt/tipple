@@ -5,7 +5,7 @@ import { UseFetchOptions, UseFetchResponse } from './types';
 
 export const useFetch = <T = any, D extends string = string>(
   url: string,
-  opts: UseFetchOptions<D>
+  opts: UseFetchOptions<D, T>
 ): UseFetchResponse<T> => {
   /** Unique identifier of request. */
   const key = useMemo(() => getKey(url, opts.fetchOptions || {}), [
@@ -47,7 +47,10 @@ export const useFetch = <T = any, D extends string = string>(
         addResponse({
           data: response,
           key,
-          domains: opts.domains,
+          domains:
+            typeof opts.domains === 'function'
+              ? opts.domains(response)
+              : opts.domains,
         });
       }
 
