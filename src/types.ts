@@ -5,10 +5,14 @@ export type CachePolicy =
   | 'network-only';
 
 /** Use fetch options shared across all configs. */
-export interface BaseUseFetchOptions<D extends string = string> {
+export interface BaseUseFetchOptions<
+  D extends string = string,
+  T extends any = any
+> {
   onMount?: boolean;
   fetchOptions?: RequestInit;
-  domains: DomainEntry<D>[];
+  baseUrl?: string;
+  domains: (data: T) => DomainEntry<D>[] | DomainEntry<D>[];
 }
 
 /** Default useFetch options. */
